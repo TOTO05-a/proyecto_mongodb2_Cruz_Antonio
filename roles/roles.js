@@ -1,13 +1,11 @@
-// Roles y Seguridad MongoDB (RBAC)
-
+// Roles MongoDB
+//
+// Objetivo:
+// Crear roles, usuarios y permisos separados.
 //
 // Estado actual:
-// MongoDB local sin autenticación (--auth desactivado)
-//
-// Este archivo define:
-// - Roles personalizados
-// - Usuarios MongoDB
-// - Privilegios según el modelo del proyecto
+// MongoDB desarrollado inicialmente sin --auth.
+// Este archivo queda preparado para ejecutarse con autenticación.
 //
 // Base principal:
 // parqueaderosMultisede
@@ -18,64 +16,66 @@
 // sedes
 // zonas
 // parqueos
+// CREACIÓN DE ROLES
+// Ejecutar desde la base admin
+use admin;
 
-
-
-
-// 1. Seleccionar base administrativa
-
-
-// use admin;
-
-
-
-// 2. Crear rol administrador del sistema
-
-
+// ROL ADMINISTRADOR
+// Control total del sistema
 db.createRole({
-    role: "adminParqueaderosRole",
+
+    role: "adminParqueaderos",
 
     privileges: [
+
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: ""
             },
+
             actions: [
                 "find",
                 "insert",
                 "update",
                 "remove",
                 "createCollection",
-                "dropCollection",
-                "listCollections",
-                "listIndexes"
+                "dropCollection"
             ]
         }
+
     ],
 
     roles: [
         {
-            role: "userAdmin",
+            role: "userAdminAnyDatabase",
             db: "admin"
         }
     ]
+
 });
 
-
-
-// 3. Crear rol empleado de sede
-
-
+// ROL EMPLEADO DE SEDE
+//
+// Operaciones diarias:
+// - Registrar ingresos
+// - Registrar salidas
+// - Consultar información necesaria
+//
+// No administra usuarios
+// No elimina información
 db.createRole({
-    role: "empleadoSedeRole",
+
+    role: "empleadoSede",
 
     privileges: [
+
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: "parqueos"
             },
+
             actions: [
                 "find",
                 "insert",
@@ -83,60 +83,86 @@ db.createRole({
             ]
         },
 
+
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: "vehiculos"
             },
+
             actions: [
                 "find"
             ]
         },
+
 
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: "usuarios"
             },
+
             actions: [
                 "find"
             ]
         },
+
 
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: "sedes"
             },
+
             actions: [
                 "find"
             ]
         },
+
 
         {
             resource: {
                 db: "parqueaderosMultisede",
                 collection: "zonas"
             },
+
             actions: [
                 "find"
             ]
         }
+
     ],
 
     roles: []
+
 });
 
-
-
-// 4. Crear rol cliente
-
-
+// ROL CLIENTE
+//
+// Solo consulta información propia.
+//
+// MongoDB RBAC no filtra documentos por usuario,
+// por lo que la restricción por propietario
+// normalmente pertenece a la aplicación.
+//
+// Aquí se limita a solo lectura.
 db.createRole({
 
-    role: "clienteRole",
+    role: "cliente",
 
     privileges: [
+
+        {
+            resource: {
+                db: "parqueaderosMultisede",
+                collection: "vehiculos"
+            },
+
+            actions: [
+                "find"
+            ]
+        },
+
 
         {
             resource: {
@@ -147,31 +173,18 @@ db.createRole({
             actions: [
                 "find"
             ]
-        },
-
-        {
-            resource: {
-                db: "parqueaderosMultisede",
-                collection: "vehiculos"
-            },
-
-            actions: [
-                "find"
-            ]
         }
+
     ],
 
     roles: []
+
 });
 
+// CREACIÓN DE USUARIOS
+use parqueaderosMultisede;
 
-
-// 5. Crear usuarios MongoDB
-
-
-
-// Usuario administrador
-
+// Usuario Administrador
 db.createUser({
 
     user: "adminParqueaderos",
@@ -179,16 +192,17 @@ db.createUser({
     pwd: "Admin12345",
 
     roles: [
+
         {
-            role: "adminParqueaderosRole",
+            role: "adminParqueaderos",
             db: "admin"
         }
+
     ]
+
 });
 
-
-// Usuario empleado
-
+// Usuario Empleado
 db.createUser({
 
     user: "empleadoSede1",
@@ -196,16 +210,17 @@ db.createUser({
     pwd: "Empleado12345",
 
     roles: [
+
         {
-            role: "empleadoSedeRole",
+            role: "empleadoSede",
             db: "admin"
         }
+
     ]
+
 });
 
-
-// Usuario cliente
-
+// Usuario Cliente
 db.createUser({
 
     user: "clientePrueba",
@@ -213,11 +228,13 @@ db.createUser({
     pwd: "Cliente12345",
 
     roles: [
+
         {
-            role: "clienteRole",
+            role: "cliente",
             db: "admin"
         }
-    ]
-});
 
+    ]
+
+});
 
