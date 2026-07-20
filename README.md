@@ -12,8 +12,8 @@ El proyecto está implementado íntegramente mediante scripts de MongoDB ejecuta
 
 ## Tecnologías utilizadas
 
-- **MongoDB** — Motor de base de datos NoSQL utilizado para el modelado, almacenamiento y consulta de la información.
-- **mongosh** — MongoDB Shell, utilizada para la ejecución de todos los scripts del proyecto.
+* **MongoDB** — Motor de base de datos NoSQL utilizado para el modelado, almacenamiento y consulta de la información.
+* **mongosh** — MongoDB Shell utilizada para la ejecución de todos los scripts del proyecto.
 
 El proyecto no utiliza frameworks de backend, librerías de Node.js ni tecnologías de frontend. Toda la lógica está implementada mediante scripts nativos de MongoDB.
 
@@ -26,107 +26,138 @@ db_config.js
 test_dataset.js
 aggregations.js
 roles.js
+transactions.js
 README.md
 ```
 
 ### `db_config.js`
-Crea la base de datos `parqueaderosMultisede` y sus colecciones, junto con las validaciones `$jsonSchema` y los índices correspondientes a cada una.
+
+Crea la base de datos `parqueaderosMultisede` y sus colecciones, junto con las validaciones mediante `$jsonSchema` y los índices correspondientes.
 
 ### `test_dataset.js`
-Puebla las colecciones con un conjunto de datos de prueba realista y coherente, mediante `insertMany`.
+
+Puebla las colecciones con un conjunto de datos de prueba realista y coherente mediante operaciones `insertMany`.
 
 ### `aggregations.js`
-Contiene las consultas analíticas construidas con el framework de agregación de MongoDB, utilizadas para generar los reportes del sistema.
+
+Contiene las consultas analíticas construidas con el framework de agregación de MongoDB, utilizadas para generar reportes del sistema.
 
 ### `roles.js`
-Define los roles personalizados de MongoDB y configura el control de acceso (RBAC) para administradores, empleados de sede y clientes.
+
+Define los roles personalizados de MongoDB y configura el control de acceso basado en roles (RBAC) para administradores, empleados de sede y clientes.
+
+### `transactions.js`
+
+Contiene la implementación de transacciones MongoDB utilizando sesiones (`session`). Permite ejecutar operaciones de escritura de manera atómica, garantizando que los cambios sean confirmados completamente o revertidos mediante `abortTransaction()` cuando ocurre un error.
 
 ## Modelo de datos
 
-El sistema está compuesto por cinco colecciones, diseñadas bajo un modelo híbrido de MongoDB: se utilizan referencias mediante `ObjectId` para relacionar colecciones, campos de tipo snapshot en los casos donde es necesario preservar información histórica, y documentos embebidos únicamente para información propia de cada entidad.
+El sistema está compuesto por cinco colecciones, diseñadas bajo un modelo híbrido de MongoDB: se utilizan referencias mediante `ObjectId` para relacionar colecciones, campos de tipo snapshot para preservar información histórica y documentos embebidos únicamente cuando la información pertenece exclusivamente a una entidad.
 
 ### `usuarios`
+
 Almacena la información de todas las personas que interactúan con el sistema, diferenciando entre administradores, empleados de sede y clientes.
 
 ### `vehiculos`
+
 Registra los vehículos asociados a cada cliente, incluyendo distintos tipos como automóviles, motocicletas, bicicletas y camiones.
 
 ### `sedes`
+
 Representa los parqueaderos físicos administrados por la empresa, ubicados en distintas ciudades.
 
 ### `zonas`
-Representa las áreas internas de cada sede, cada una con su propia capacidad, cupos disponibles, tarifa y tipos de vehículo permitidos.
+
+Representa las áreas internas de cada sede, cada una con su capacidad, cupos disponibles, tarifa y tipos de vehículo permitidos.
 
 ### `parqueos`
-Es la colección transaccional principal del sistema: registra cada ingreso y salida de vehículo, junto con el tiempo total y el costo asociado.
+
+Es la colección principal del sistema para el registro de operaciones de parqueo, almacenando la información relacionada con ingresos, salidas, tiempo total y costo asociado.
 
 ## Características implementadas
 
 ### Validación de datos (JSON Schema)
-Cada colección cuenta con un esquema de validación `$jsonSchema` que define tipos de datos, campos obligatorios y reglas de negocio, como valores permitidos mediante `enum`.
+
+Cada colección cuenta con un esquema de validación `$jsonSchema` que define tipos de datos, campos obligatorios y reglas de negocio mediante restricciones como `enum`.
 
 ### Índices
-Se definieron índices sobre los campos más relevantes para las consultas y restricciones de unicidad del sistema, como los documentos de identificación y correos de usuarios, las placas de vehículos y los nombres de sede.
+
+Se definieron índices sobre los campos más relevantes para optimizar consultas y aplicar restricciones de unicidad, como documentos de identificación, correos de usuarios, placas de vehículos y nombres de sedes.
 
 ### Datos de prueba
-El sistema incluye un conjunto de datos de prueba realista y variado, que cubre sedes, zonas, usuarios, vehículos y registros de parqueo, incluyendo casos con parqueos actualmente activos.
+
+El sistema incluye un conjunto de datos de prueba realista que cubre sedes, zonas, usuarios, vehículos y registros de parqueo, incluyendo casos con vehículos actualmente registrados en parqueos activos.
 
 ### Consultas de agregación
-Se implementaron consultas analíticas mediante el framework de agregación de MongoDB, orientadas a la generación de reportes de negocio.
+
+Se implementaron consultas analíticas mediante el framework de agregación de MongoDB orientadas a la generación de reportes de negocio.
 
 ### Control de acceso (RBAC)
-Se configuraron roles personalizados de MongoDB para diferenciar los permisos de acceso según el tipo de usuario del sistema.
 
-## Seguridad RBAC
+Se configuraron roles personalizados de MongoDB para diferenciar los permisos según el tipo de usuario del sistema.
 
-MongoDB implementa tres perfiles:
+### Transacciones MongoDB
 
-- Administrador
-- Empleado de sede
-- Cliente
+Se implementaron transacciones mediante sesiones de MongoDB para garantizar operaciones atómicas sobre múltiples documentos, permitiendo confirmar cambios mediante `commitTransaction()` o revertirlos mediante `abortTransaction()` en caso de fallo.
 
-La autenticación se encuentra preparada para activarse mediante --auth.
+## Seguridad y control de acceso (RBAC)
+
+MongoDB implementa tres perfiles principales:
+
+* Administrador.
+* Empleado de sede.
+* Cliente.
+
+Los permisos son administrados mediante roles personalizados definidos en el archivo `roles.js`, restringiendo operaciones de lectura y escritura según el nivel de acceso correspondiente.
+
+La autenticación puede habilitarse mediante la configuración de MongoDB con la opción `--auth`.
 
 ## Consultas de agregación
 
-El archivo `aggregations.js` contiene un conjunto de consultas analíticas construidas con el framework de agregación de MongoDB. Estas consultas están orientadas a la generación de reportes de negocio sobre:
+El archivo `aggregations.js` contiene consultas analíticas construidas con el framework de agregación de MongoDB, orientadas a generar reportes sobre:
 
-- Ocupación de zonas y sedes.
-- Ingresos generados por sede.
-- Uso del sistema por parte de los clientes.
-- Frecuencia de uso según tipo de vehículo.
-- Historial de parqueos por usuario.
+* Ocupación de zonas y sedes.
+* Ingresos generados por sede.
+* Uso del sistema por parte de clientes.
+* Frecuencia de uso según tipo de vehículo.
+* Historial de parqueos por usuario.
 
-Cada consulta se encuentra documentada mediante comentarios explicativos dentro del propio archivo.
+Cada consulta cuenta con comentarios explicativos dentro del archivo correspondiente.
 
-## Seguridad
+## Transacciones MongoDB
 
-El control de acceso a la base de datos se implementa mediante roles personalizados de MongoDB, definidos en el archivo `roles.js`. Se establecen niveles de acceso diferenciados para administradores, empleados de sede y clientes, restringiendo las operaciones de lectura y escritura de acuerdo con el tipo de usuario y su alcance dentro del sistema.
+El archivo `transactions.js` contiene la implementación de operaciones transaccionales utilizando sesiones de MongoDB.
+
+Las transacciones permiten ejecutar múltiples operaciones relacionadas dentro de una única unidad de trabajo, asegurando consistencia de los datos mediante:
+
+* Inicio de sesión transaccional.
+* Confirmación mediante `commitTransaction()`.
+* Reversión mediante `abortTransaction()` cuando ocurre un error.
 
 ## Instalación
 
-Para ejecutar el proyecto es necesario contar con una instancia de MongoDB disponible y con acceso a `mongosh`.
+Para ejecutar el proyecto es necesario contar con una instancia de MongoDB disponible y acceso a `mongosh`.
 
-Los scripts deben ejecutarse en el siguiente orden, ya que cada uno depende de la estructura y los datos generados por el anterior:
+Los scripts deben ejecutarse en el siguiente orden:
 
-1. **db_config.js** — Crea la base de datos, las colecciones, sus validaciones y sus índices.
-2. **test_dataset.js** — Puebla las colecciones con el conjunto de datos de prueba.
-3. **aggregations.js** — Ejecuta las consultas analíticas sobre los datos ya cargados.
-4. **roles.js** — Crea los roles personalizados y configura el control de acceso.
+1. **db_config.js** — Crea la estructura de la base de datos, colecciones, validaciones e índices.
+2. **test_dataset.js** — Inserta los datos de prueba.
+3. **aggregations.js** — Ejecuta las consultas analíticas.
+4. **roles.js** — Configura los roles personalizados y permisos.
+5. **transactions.js** — Ejecuta las operaciones transaccionales implementadas.
 
-Cada archivo puede ejecutarse desde `mongosh`, ya sea copiando su contenido directamente en la shell o cargándolo desde la ruta correspondiente dentro de una sesión activa.
-
-## Estado del proyecto
-
-El proyecto se encuentra en desarrollo activo. A la fecha se encuentran implementados el modelo de datos y sus validaciones, los índices, el dataset de prueba, las consultas de agregación y el control de acceso mediante roles.
-
-Las transacciones de MongoDB aún no forman parte de esta versión del proyecto.
+Cada archivo puede ejecutarse desde `mongosh`, cargando el script correspondiente dentro de una sesión activa.
 
 ## Estado del proyecto
 
-El proyecto cuenta con la implementación del modelo de datos, validaciones mediante `$jsonSchema`, índices, dataset de prueba, consultas de agregación, control de acceso mediante roles RBAC y transacciones MongoDB.
+El proyecto cuenta con la implementación completa de las principales funcionalidades requeridas:
 
-La implementación de transacciones se encuentra en el archivo `transactions.js`, donde se utiliza el framework de transacciones de MongoDB mediante sesiones (`session`) para garantizar operaciones atómicas sobre múltiples documentos.
-### `transactions.js`
+* Modelo de datos en MongoDB.
+* Validaciones mediante `$jsonSchema`.
+* Índices.
+* Dataset de prueba.
+* Consultas de agregación.
+* Control de acceso mediante roles RBAC.
+* Implementación de transacciones MongoDB.
 
-Contiene la implementación de transacciones MongoDB utilizando sesiones (`session`). Permite ejecutar operaciones de escritura atómicas, asegurando que los cambios realizados en múltiples documentos se confirmen completamente o sean revertidos mediante `abortTransaction()` en caso de error.
+La solución fue desarrollada completamente mediante scripts nativos de MongoDB ejecutados con `mongosh`, sin utilizar frontend, API REST o Node.js.
