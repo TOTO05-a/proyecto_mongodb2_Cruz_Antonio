@@ -3,11 +3,7 @@
 // Objetivo:
 // Crear roles, usuarios y permisos separados.
 //
-// Estado actual:
-// MongoDB desarrollado inicialmente sin --auth.
-// Este archivo queda preparado para ejecutarse con autenticación.
-//
-// Base principal:
+// Base:
 // parqueaderosMultisede
 //
 // Colecciones:
@@ -17,10 +13,10 @@
 // zonas
 // parqueos
 // CREACIÓN DE ROLES
-// Ejecutar desde la base admin
-use admin;
+use parqueaderosMultisede;
 
 // ROL ADMINISTRADOR
+//
 // Control total del sistema
 db.createRole({
 
@@ -40,7 +36,9 @@ db.createRole({
                 "update",
                 "remove",
                 "createCollection",
-                "dropCollection"
+                "dropCollection",
+                "listCollections",
+                "listIndexes"
             ]
         }
 
@@ -48,8 +46,12 @@ db.createRole({
 
     roles: [
         {
-            role: "userAdminAnyDatabase",
-            db: "admin"
+            role: "dbAdmin",
+            db: "parqueaderosMultisede"
+        },
+        {
+            role: "userAdmin",
+            db: "parqueaderosMultisede"
         }
     ]
 
@@ -60,10 +62,7 @@ db.createRole({
 // Operaciones diarias:
 // - Registrar ingresos
 // - Registrar salidas
-// - Consultar información necesaria
-//
-// No administra usuarios
-// No elimina información
+// - Consultar información operativa
 db.createRole({
 
     role: "empleadoSede",
@@ -139,13 +138,7 @@ db.createRole({
 
 // ROL CLIENTE
 //
-// Solo consulta información propia.
-//
-// MongoDB RBAC no filtra documentos por usuario,
-// por lo que la restricción por propietario
-// normalmente pertenece a la aplicación.
-//
-// Aquí se limita a solo lectura.
+// Solo consulta información.
 db.createRole({
 
     role: "cliente",
@@ -182,9 +175,9 @@ db.createRole({
 });
 
 // CREACIÓN DE USUARIOS
-use parqueaderosMultisede;
 
-// Usuario Administrador
+// Usuario administrador
+
 db.createUser({
 
     user: "adminParqueaderos",
@@ -195,14 +188,16 @@ db.createUser({
 
         {
             role: "adminParqueaderos",
-            db: "admin"
+            db: "parqueaderosMultisede"
         }
 
     ]
 
 });
 
-// Usuario Empleado
+
+// Usuario empleado
+
 db.createUser({
 
     user: "empleadoSede1",
@@ -213,14 +208,16 @@ db.createUser({
 
         {
             role: "empleadoSede",
-            db: "admin"
+            db: "parqueaderosMultisede"
         }
 
     ]
 
 });
 
-// Usuario Cliente
+
+// Usuario cliente
+
 db.createUser({
 
     user: "clientePrueba",
@@ -231,10 +228,9 @@ db.createUser({
 
         {
             role: "cliente",
-            db: "admin"
+            db: "parqueaderosMultisede"
         }
 
     ]
 
 });
-
