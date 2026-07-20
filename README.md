@@ -122,6 +122,8 @@ El proyecto se encuentra en desarrollo activo. A la fecha se encuentran implemen
 
 Las transacciones de MongoDB aún no forman parte de esta versión del proyecto.
 
+## Estado del proyecto
 
-- Implementación de transacciones MongoDB (`transactions.js`), esta implementacion ya se encuentra en el repositorio de GitHub.
-su funcionalidad se encuentra en el archivo `transactions.js` basicamente es un wrapper para el framework de transacciones de MongoDB que permite realizar operaciones de escritura en la base de datos.
+El proyecto cuenta con la implementación del modelo de datos, validaciones mediante `$jsonSchema`, índices, dataset de prueba, consultas de agregación, control de acceso mediante roles RBAC y transacciones MongoDB.
+
+La implementación de transacciones se encuentra en el archivo `transactions.js`, donde se utiliza el framework de transacciones de MongoDB mediante sesiones (`session`) para garantizar operaciones atómicas sobre múltiples documentos.
