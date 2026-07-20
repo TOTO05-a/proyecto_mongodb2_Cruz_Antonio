@@ -127,3 +127,6 @@ Las transacciones de MongoDB aún no forman parte de esta versión del proyecto.
 El proyecto cuenta con la implementación del modelo de datos, validaciones mediante `$jsonSchema`, índices, dataset de prueba, consultas de agregación, control de acceso mediante roles RBAC y transacciones MongoDB.
 
 La implementación de transacciones se encuentra en el archivo `transactions.js`, donde se utiliza el framework de transacciones de MongoDB mediante sesiones (`session`) para garantizar operaciones atómicas sobre múltiples documentos.
+### `transactions.js`
+
+Contiene la implementación de transacciones MongoDB utilizando sesiones (`session`). Permite ejecutar operaciones de escritura atómicas, asegurando que los cambios realizados en múltiples documentos se confirmen completamente o sean revertidos mediante `abortTransaction()` en caso de error.
