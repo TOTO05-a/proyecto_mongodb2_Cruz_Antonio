@@ -77,6 +77,16 @@ Se implementaron consultas analíticas mediante el framework de agregación de M
 ### Control de acceso (RBAC)
 Se configuraron roles personalizados de MongoDB para diferenciar los permisos de acceso según el tipo de usuario del sistema.
 
+## Seguridad RBAC
+
+MongoDB implementa tres perfiles:
+
+- Administrador
+- Empleado de sede
+- Cliente
+
+La autenticación se encuentra preparada para activarse mediante --auth.
+
 ## Consultas de agregación
 
 El archivo `aggregations.js` contiene un conjunto de consultas analíticas construidas con el framework de agregación de MongoDB. Estas consultas están orientadas a la generación de reportes de negocio sobre:
