@@ -1,179 +1,117 @@
+# Parqueaderos Multisede
 
-# ENUNCIADO DEL PROYECTO
+Proyecto #1 — Base de datos MongoDB para la gestión de un sistema de parqueaderos multisede.
 
-## Proyecto #1
-Parqueaderos Multisede
+## Descripción
 
-Campus Parking es una empresa que administra múltiples parqueaderos ubicados en diferentes ciudades. Actualmente utilizan hojas de cálculo locales para registrar información, lo que genera duplicación de datos, errores y dificulta el acceso unificado a la información.
+Campus Parking es una empresa que administra múltiples parqueaderos ubicados en distintas ciudades. Este proyecto diseña e implementa, sobre MongoDB, la base de datos que soporta la operación de dicho sistema, reemplazando el manejo de la información mediante hojas de cálculo locales.
 
-Han decidido migrar a una base de datos NoSQL para aprovechar la flexibilidad de MongoDB. Tu rol como desarrollador backend será diseñar esta solución, poblarla con datos de prueba realistas, implementar consultas analíticas, manejar la seguridad del sistema con control de roles, y demostrar el uso de transacciones.
+El modelo de datos permite gestionar usuarios con distintos niveles de acceso (administradores, empleados de sede y clientes), registrar vehículos, administrar sedes y sus zonas internas —con cupos, tarifas y tipos de vehículo permitidos— y almacenar el histórico de ingresos y salidas de vehículos, incluyendo el tiempo total y el costo asociado a cada parqueo.
 
-Requisitos funcionales del sistema
+El proyecto está implementado íntegramente mediante scripts de MongoDB ejecutados con mongosh. No incluye frontend, API REST ni Node.js.
 
-Funcionalidad esperada
+## Tecnologías utilizadas
 
-El sistema debe permitir:
+- **MongoDB** — Motor de base de datos NoSQL utilizado para el modelado, almacenamiento y consulta de la información.
+- **mongosh** — MongoDB Shell, utilizada para la ejecución de todos los scripts del proyecto.
 
-    Registro de vehículos (carro, moto, bicicleta, camión, etc.) con su respectiva información.
-    Gestión de usuarios, clasificados como:
-    Administrador: acceso total.
-    Empleado de sede: acceso limitado a la sede.
-    Cliente: acceso solo a su información y disponibilidad de zonas.
-    Control de sedes, cada una con varias zonas, capacidad máxima, tipos de vehículos permitidos y tarifas definidas.
-    Registro de ingresos y salidas de vehículos:
-    Sede y zona donde se estaciona.
-    Hora de entrada y salida.
-    Tiempo total y costo calculado automáticamente.
-    Acceso al histórico de parqueos por usuario.
-    Reportes de ocupación por sede, zona, tipo de vehículo.
-    Control de cupos restantes en cada zona.
-    Registro de ingresos a través de una transacción MongoDB que asegure la consistencia entre las zonas y parqueos.
+El proyecto no utiliza frameworks de backend, librerías de Node.js ni tecnologías de frontend. Toda la lógica está implementada mediante scripts nativos de MongoDB.
 
-Estructura del repositorio
+## Estructura del proyecto
 
-Tu proyecto debe tener la siguiente estructura y archivos:
+El proyecto está organizado en los siguientes archivos:
 
-📁 [Directorio del proyecto]
-├── db_config.js           # Creación de colecciones con $jsonSchema e índices
-├── test_dataset.js        # Poblamiento de la base con datos de prueba realistas
-├── aggregations.js        # Consultas analíticas usando el framework de agregación
-├── roles.js               # Definición de roles y control de acceso
-├── transactions.js        # Transacción funcional entre colecciones
-└── README.md              # Documentación completa del sistema
+```
+db_config.js
+test_dataset.js
+aggregations.js
+roles.js
+README.md
+```
 
-Descripción detallada de cada archivo
+### `db_config.js`
+Crea la base de datos `parqueaderosMultisede` y sus colecciones, junto con las validaciones `$jsonSchema` y los índices correspondientes a cada una.
 
-1. db_config.js
+### `test_dataset.js`
+Puebla las colecciones con un conjunto de datos de prueba realista y coherente, mediante `insertMany`.
 
-Objetivo: Definir y crear todas las colecciones del sistema. Cada colección debe tener:
+### `aggregations.js`
+Contiene las consultas analíticas construidas con el framework de agregación de MongoDB, utilizadas para generar los reportes del sistema.
 
-    Un esquema de validación $jsonSchema completo:
-    Tipos de datos (string, int, date, etc.)
-    Campos requeridos
-    Reglas de negocio (por ejemplo, valores permitidos con enum)
-    Estructuras embebidas si aplica
-    Índices definidos según las necesidades del sistema:
-    Índices simples (ej: placa, cedula)
-    Índices compuestos (ej: zona + estado)
+### `roles.js`
+Define los roles personalizados de MongoDB y configura el control de acceso (RBAC) para administradores, empleados de sede y clientes.
 
+## Modelo de datos
 
-Colecciones obligatorias:
+El sistema está compuesto por cinco colecciones, diseñadas bajo un modelo híbrido de MongoDB: se utilizan referencias mediante `ObjectId` para relacionar colecciones, campos de tipo snapshot en los casos donde es necesario preservar información histórica, y documentos embebidos únicamente para información propia de cada entidad.
 
-    usuarios
-    vehiculos
-    sedes
-    zonas
-    parqueos
+### `usuarios`
+Almacena la información de todas las personas que interactúan con el sistema, diferenciando entre administradores, empleados de sede y clientes.
 
-2. test_dataset.js
+### `vehiculos`
+Registra los vehículos asociados a cada cliente, incluyendo distintos tipos como automóviles, motocicletas, bicicletas y camiones.
 
-Objetivo: Poblar el sistema con datos de prueba coherentes y variados. Usar insertMany.
+### `sedes`
+Representa los parqueaderos físicos administrados por la empresa, ubicados en distintas ciudades.
 
-Debe incluir:
+### `zonas`
+Representa las áreas internas de cada sede, cada una con su propia capacidad, cupos disponibles, tarifa y tipos de vehículo permitidos.
 
-    3 sedes en distintas ciudades.
-    5 zonas por sede, con cupos, precios y tipos de vehículo permitidos.
-    10 empleados distribuidos entre las sedes.
-    15 clientes con sus datos completos.
-    30 vehículos, de al menos 4 tipos diferentes, asignados a los clientes.
-    50 registros de parqueos, mezclando sedes, zonas y tipos de vehículos. Algunos deben estar actualmente activos (sin hora de salida).
+### `parqueos`
+Es la colección transaccional principal del sistema: registra cada ingreso y salida de vehículo, junto con el tiempo total y el costo asociado.
 
-3. aggregations.js
+## Características implementadas
 
-Objetivo: Resolver las siguientes preguntas usando agregaciones de MongoDB. Cada consulta debe estar comentada y explicada.
+### Validación de datos (JSON Schema)
+Cada colección cuenta con un esquema de validación `$jsonSchema` que define tipos de datos, campos obligatorios y reglas de negocio, como valores permitidos mediante `enum`.
 
-    ¿Cuántos parqueos se registraron por sede en el último mes?
-    ¿Cuáles son las zonas más ocupadas en cada sede?
-    ¿Cuál es el ingreso total generado por parqueo en cada sede?
-    ¿Qué cliente ha usado más veces el parqueadero?
-    ¿Qué tipo de vehículo es más frecuente por sede?
-    Dado un cliente, mostrar su historial de parqueos (fecha, sede, zona, tipo de vehículo, tiempo y costo).
-    Mostrar los vehículos parqueados actualmente en cada sede.
-    Listar zonas que han excedido su capacidad de parqueo en algún momento.
+### Índices
+Se definieron índices sobre los campos más relevantes para las consultas y restricciones de unicidad del sistema, como los documentos de identificación y correos de usuarios, las placas de vehículos y los nombres de sede.
 
-4. roles.js
+### Datos de prueba
+El sistema incluye un conjunto de datos de prueba realista y variado, que cubre sedes, zonas, usuarios, vehículos y registros de parqueo, incluyendo casos con parqueos actualmente activos.
 
-Objetivo: Crear y asignar roles con diferentes permisos sobre la base de datos.
+### Consultas de agregación
+Se implementaron consultas analíticas mediante el framework de agregación de MongoDB, orientadas a la generación de reportes de negocio.
 
-Debe incluir:
+### Control de acceso (RBAC)
+Se configuraron roles personalizados de MongoDB para diferenciar los permisos de acceso según el tipo de usuario del sistema.
 
-    Administrador
-    Lectura y escritura total.
-    Puede crear usuarios y modificar configuración.
-    Empleado de sede
-    Solo lectura de clientes y vehículos.
-    Puede registrar ingresos y salidas de parqueos.
-    Solo puede acceder a zonas y sedes donde trabaja.
-    Cliente
-    Solo lectura de su propia información.
-    Lectura de su historial de parqueos.
-    Lectura general de disponibilidad de zonas y precios.
+## Consultas de agregación
 
+El archivo `aggregations.js` contiene un conjunto de consultas analíticas construidas con el framework de agregación de MongoDB. Estas consultas están orientadas a la generación de reportes de negocio sobre:
 
-Usar db.createRole() y db.grantRolesToUser() correctamente.
+- Ocupación de zonas y sedes.
+- Ingresos generados por sede.
+- Uso del sistema por parte de los clientes.
+- Frecuencia de uso según tipo de vehículo.
+- Historial de parqueos por usuario.
 
-5. transactions.js
+Cada consulta se encuentra documentada mediante comentarios explicativos dentro del propio archivo.
 
-Objetivo: Crear una transacción MongoDB entre al menos dos colecciones.
+## Seguridad
 
-Escenario sugerido:
+El control de acceso a la base de datos se implementa mediante roles personalizados de MongoDB, definidos en el archivo `roles.js`. Se establecen niveles de acceso diferenciados para administradores, empleados de sede y clientes, restringiendo las operaciones de lectura y escritura de acuerdo con el tipo de usuario y su alcance dentro del sistema.
 
-    Registrar un nuevo ingreso:
-    Insertar un documento en parqueos.
-    Disminuir el campo cupos_disponibles en la colección zonas.
-    Todo debe hacerse dentro de una transacción usando session.startTransaction() y manejo de errores.
+## Instalación
 
-Debe incluir:
+Para ejecutar el proyecto es necesario contar con una instancia de MongoDB disponible y con acceso a `mongosh`.
 
-    Inicio y commit/abort de la transacción.
-    Manejo de errores con rollback.
-    Comentarios explicando cada paso.
+Los scripts deben ejecutarse en el siguiente orden, ya que cada uno depende de la estructura y los datos generados por el anterior:
 
-6. README.md
+1. **db_config.js** — Crea la base de datos, las colecciones, sus validaciones y sus índices.
+2. **test_dataset.js** — Puebla las colecciones con el conjunto de datos de prueba.
+3. **aggregations.js** — Ejecuta las consultas analíticas sobre los datos ya cargados.
+4. **roles.js** — Crea los roles personalizados y configura el control de acceso.
 
-Objetivo: Describir el sistema completo con detalles de cada archivo y sus funciones.
+Cada archivo puede ejecutarse desde `mongosh`, ya sea copiando su contenido directamente en la shell o cargándolo desde la ruta correspondiente dentro de una sesión activa.
 
-Resultado esperado
+## Estado del proyecto
 
-Documentar TODO el proyecto en en repositorio de GitHub privado y compartido con las cuentas que el Trainer indique. Este repositorio debe tener un Readme que incluya como mínimo:
+El proyecto se encuentra en desarrollo activo. A la fecha se encuentran implementados el modelo de datos y sus validaciones, los índices, el dataset de prueba, las consultas de agregación y el control de acceso mediante roles.
 
-Introducción al proyecto
+Las transacciones de MongoDB aún no forman parte de esta versión del proyecto.
 
-    Justificación del uso de MongoDB
-    Diseño del modelo de datos:
-    Colecciones creadas
-    Decisiones de uso de referencias o embebidos
-    Validaciones $jsonSchema
-    Explicación de validaciones por colección
-    Índices
-    Lista de índices creados
-    Justificación técnica de su uso
-    Estructura de los datos de prueba
-    Explicación de cada agregación
-    Transacción MongoDB
-    Escenario utilizado
-    Código explicado paso a paso
-    Roles
-    Descripción de cada rol
-    Ejemplo de creación de usuarios con esos roles
-    Conclusiones y mejoras posibles
+## Trabajo pendiente
 
-Rúbricas de evaluación
-
-Dominio y conocimiento del código  34 Puntos 40.0%
-
-Modelo de datos y validaciones con $jsonSchema (db_config.js) 10 Puntos  11.8%
-
-Índices aplicados y documentados 5 Puntos 5.9%
-
-Inserción de datos (test_dataset.js) 6 Puntos 7.1%
-
-Consultas (aggregations.js)  10 Puntos 11.8%
-
-Control de acceso y definición de roles (roles.js) 3 Puntos  3.5%
-
-Transacción MongoDB (transactions.js)  6 Puntos  7.1%
-
-Documentación (README.md)  8 Puntos  9.4%
-
-Organización y calidad del código 3 Puntos 3.5%
+- Implementación de transacciones MongoDB (`transactions.js`), orientada a garantizar la consistencia entre el registro de un nuevo ingreso en la colección `parqueos` y la actualización de los cupos disponibles en la colección `zonas`.
