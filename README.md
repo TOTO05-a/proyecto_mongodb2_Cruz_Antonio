@@ -122,6 +122,6 @@ El proyecto se encuentra en desarrollo activo. A la fecha se encuentran implemen
 
 Las transacciones de MongoDB aún no forman parte de esta versión del proyecto.
 
-## Trabajo pendiente
 
-- Implementación de transacciones MongoDB (`transactions.js`), orientada a garantizar la consistencia entre el registro de un nuevo ingreso en la colección `parqueos` y la actualización de los cupos disponibles en la colección `zonas`.
+- Implementación de transacciones MongoDB (`transactions.js`), esta implementacion ya se encuentra en el repositorio de GitHub.
+su funcionalidad se encuentra en el archivo `transactions.js` basicamente es un wrapper para el framework de transacciones de MongoDB que permite realizar operaciones de escritura en la base de datos.
