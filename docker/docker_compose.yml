@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb_antonio
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=antonio1234
+    ports:
+      - "27017:27018"
+    volumes:
+      - mongo_data:/data/db
+    command: mongod --auth
+
+volumes:
+  mongo_data:
